@@ -107,7 +107,7 @@ def with_tab1(
         )
 
         col1, col2, col3 = st.columns(3)
-        if col1.button("👍 Like"):
+        if col1.button("👍 Like", key='Like_page1'):
             # Remove any existing rating
             st.session_state.user_reviews = st.session_state.user_reviews[
                 ~(
@@ -131,7 +131,7 @@ def with_tab1(
             )
             st.rerun()
 
-        if col2.button("👎 Dislike"):
+        if col2.button("👎 Dislike", key='Dislike_page1'):
             # Remove any existing rating
             st.session_state.user_reviews = st.session_state.user_reviews[
                 ~(
@@ -155,7 +155,7 @@ def with_tab1(
             )
             st.rerun()
 
-        if col3.button("Remove Rating"):
+        if col3.button("Remove Rating", key='Rmr_page1'):
             st.session_state.user_reviews = st.session_state.user_reviews[
                 ~(
                     (
@@ -166,25 +166,4 @@ def with_tab1(
                 )
             ]
             st.rerun()
-
-        # Similar games section
-        st.markdown("### Similar Games")
-        similar_games = recommend_games_by_content(
-            game["app_id"], games_with_meta, games_similarity, top_n=5
-        )
-
-        for _, sim_game in similar_games.iterrows():
-            col1, col2 = st.columns([1, 3])
-
-            with col1:
-                sim_image_url = f"https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/{sim_game['app_id']}/header.jpg"
-                st.image(sim_image_url, use_container_width=True)
-
-            with col2:
-                st.markdown(f"**{sim_game['title']}**")
-                st.markdown(f"{sim_game['description'][:300]}...")
-                if st.button("View details", key=f"similar_{sim_game['app_id']}"):
-                    st.session_state.selected_game = sim_game
-                    st.rerun()
-
             st.markdown("---")

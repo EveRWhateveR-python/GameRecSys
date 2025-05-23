@@ -1,9 +1,10 @@
 import streamlit as st
 from surprise import SVD, Dataset
+import pandas as pd
 
 
 def with_tab2(
-    all_tags, games_with_meta, recommend_games_for_user, reader, show_game_info
+    all_tags, games_with_meta, recommend_games_for_user, reader, show_game_info, get_user_game_rating
 ):
     if st.session_state.selected_game is None:
         st.title("Recommended For You")
@@ -90,3 +91,79 @@ def with_tab2(
         if st.button("← Back to recomendations"):
             st.session_state.selected_game = None
             st.rerun()
+        
+        # Game details
+        image_url = f"https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/{game['app_id']}/header.jpg"
+        st.image(image_url, use_container_width=True)
+
+        st.write(f"**Tags:** {game['tags']}")
+        st.write(f"**Description:** {game['description'][:300]}...")
+        store_url = f"https://store.steampowered.com/app/{game['app_id']}/"
+        st.markdown(f"[View on Steam]({store_url})")
+
+        # Rating buttons
+        current_rating = get_user_game_rating(
+            st.session_state.user_id, game["app_id"], st.session_state.user_reviews
+        )
+
+        col1, col2, col3 = st.columns(3)
+        if col1.button("👍 Like", key='Like_page2'):
+            # Remove any existing rating
+            st.session_state.user_reviews = st.session_state.user_reviews[
+                ~(
+                    (
+                        st.session_state.user_reviews["user_id"]
+                        == st.session_state.user_id
+                    )
+                    & (st.session_state.user_reviews["app_id"] == game["app_id"])
+                )
+            ]
+            # Add new rating
+            st.session_state.user_reviews = pd.concat(
+                [
+                    st.session_state.user_reviews,
+                    pd.DataFrame(
+                        [[st.session_state.user_id, game["app_id"], 1]],
+                        columns=["user_id", "app_id", "is_recommended"],
+                    ),
+                ],
+                ignore_index=True,
+            )
+            st.rerun()
+
+        if col2.button("👎 Dislike", key='Dislike_page2'):
+            # Remove any existing rating
+            st.session_state.user_reviews = st.session_state.user_reviews[
+                ~(
+                    (
+                        st.session_state.user_reviews["user_id"]
+                        == st.session_state.user_id
+                    )
+                    & (st.session_state.user_reviews["app_id"] == game["app_id"])
+                )
+            ]
+            # Add new rating
+            st.session_state.user_reviews = pd.concat(
+                [
+                    st.session_state.user_reviews,
+                    pd.DataFrame(
+                        [[st.session_state.user_id, game["app_id"], 0]],
+                        columns=["user_id", "app_id", "is_recommended"],
+                    ),
+                ],
+                ignore_index=True,
+            )
+            st.rerun()
+
+        if col3.button("Remove Rating", key='Rmr_page2'):
+            st.session_state.user_reviews = st.session_state.user_reviews[
+                ~(
+                    (
+                        st.session_state.user_reviews["user_id"]
+                        == st.session_state.user_id
+                    )
+                    & (st.session_state.user_reviews["app_id"] == game["app_id"])
+                )
+            ]
+            st.rerun()
+            st.markdown("---")

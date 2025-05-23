@@ -127,6 +127,7 @@ with tab2:
         recommend_games_for_user,
         reader,
         show_game_info,
+        get_user_game_rating
     )
 
 
